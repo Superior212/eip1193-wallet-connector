@@ -1,7 +1,10 @@
+// React component
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WalletIcon, UnlinkIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
 declare global {
   interface Window {
     ethereum: any;
@@ -9,20 +12,30 @@ declare global {
 }
 
 const WalletConnect = () => {
-  const [account, setAccount] = useState(null);
+  const [account, setAccount] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
+  const { toast } = useToast();
 
-  //check if wallet is installed
+  // Check if wallet is installed and listen for account changes
   useEffect(() => {
     if (window.ethereum) {
-      setMessage("Ethereum wallet found");
-    } else {
-      setMessage("Ethereum wallet not found");
-    }
-  }, []);
+      toast({ description: "Ethereum wallet found" });
 
-  // function to Connect wallet
+      // Listen for account changes (in case the user changes account)
+      window.ethereum.on("accountsChanged", (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+        } else {
+          // Handle account disconnection
+          setAccount(null);
+        }
+      });
+    } else {
+      toast({ description: "Ethereum wallet not found" });
+    }
+  }, [toast]);
+
+  // Function to connect wallet
   const connectWallet = async () => {
     if (window.ethereum) {
       try {
@@ -30,38 +43,39 @@ const WalletConnect = () => {
           method: "eth_requestAccounts",
         });
         setAccount(accounts[0]);
-      } catch (error) {
-        if (error instanceof Error) {
-          setError(error.message);
+        toast({ description: "Wallet connected successfully" });
+      } catch (error: any) {
+        if (error.code === 4001) {
+          // Handle user rejection
+          setError("User rejected the request");
         } else {
-          setError(String(error));
+          setError(error.message);
         }
       }
     } else {
-      setError("Please install Metamask");
+      setError("Please install MetaMask");
     }
   };
 
-  function disconnectWallet() {
+  // Function to disconnect wallet
+  const disconnectWallet = () => {
     setAccount(null);
-  }
+    toast({ description: "Wallet disconnected" });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-[#092324] p-4 sm:p-0 flex items-center justify-center">
+      <Card className="sm:w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
             Wallet Connect
           </CardTitle>
         </CardHeader>
-        <div className="p-3 max-w-[12rem] mx-auto mb-5 bg-gray-200 rounded-lg">
-          <p className="text-sm font-semibold text-center text-gray-900">
-            {message}
-          </p>
-        </div>
         <CardContent>
           {!account ? (
-            <Button className="w-full" onClick={connectWallet}>
+            <Button
+              className="w-full bg-[#1E1E1E99] rounded-xl"
+              onClick={connectWallet}>
               <WalletIcon className="mr-2 h-4 w-4" /> Connect Wallet
             </Button>
           ) : (
@@ -70,7 +84,7 @@ const WalletConnect = () => {
                 <p className="text-sm font-medium text-gray-500">
                   Connected Account
                 </p>
-                <p className="text-sm font-semibold text-gray-900 break-all">
+                <p className="text-[10px] sm:text-sm font-semibold text-gray-900 break-all">
                   {account}
                 </p>
               </div>
@@ -81,7 +95,7 @@ const WalletConnect = () => {
               </Button>
             </div>
           )}
-          {error && <p>{error}</p>}
+          {error && <p className="text-red-500 mt-2">{error}</p>}
         </CardContent>
       </Card>
     </div>
