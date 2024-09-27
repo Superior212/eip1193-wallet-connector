@@ -12,6 +12,7 @@ const WalletConnect = () => {
   const [account, setAccount] = useState(null);
   const [error, setError] = useState<string | null>(null);
 
+  //check if wallet is installed
   useEffect(() => {
     if (window.ethereum) {
       console.log("Ethereum wallet found");
@@ -21,7 +22,6 @@ const WalletConnect = () => {
   }, []);
 
   // function to Connect wallet
-
   const connectWallet = async () => {
     if (window.ethereum) {
       try {
