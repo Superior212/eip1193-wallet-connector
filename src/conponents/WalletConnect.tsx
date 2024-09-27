@@ -11,13 +11,14 @@ declare global {
 const WalletConnect = () => {
   const [account, setAccount] = useState(null);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
 
   //check if wallet is installed
   useEffect(() => {
     if (window.ethereum) {
-      console.log("Ethereum wallet found");
+      setMessage("Ethereum wallet found");
     } else {
-      console.log("Ethereum wallet not found");
+      setMessage("Ethereum wallet not found");
     }
   }, []);
 
@@ -53,6 +54,11 @@ const WalletConnect = () => {
             Wallet Connect
           </CardTitle>
         </CardHeader>
+        <div className="p-3 max-w-[12rem] mx-auto mb-5 bg-gray-200 rounded-lg">
+          <p className="text-sm font-semibold text-center text-gray-900">
+            {message}
+          </p>
+        </div>
         <CardContent>
           {!account ? (
             <Button className="w-full" onClick={connectWallet}>
