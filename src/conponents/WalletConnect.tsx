@@ -1,65 +1,36 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WalletIcon, UnlinkIcon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-declare global {
-  interface Window {
-    ethereum: any;
-  }
-}
+import { useWallet } from "@/hooks/useWallet";
 
 const WalletConnect = () => {
-  const [account, setAccount] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+  const {
+    account,
+    balance,
+    error,
+    connectWallet,
+    disconnectWallet,
+    fetchBalance,
+  } = useWallet();
+  const [addressInput, setAddressInput] = useState<string>("");
+  const [checkedAddress, setCheckedAddress] = useState<string | null>(null); // State to store the input address after checking
 
-  // Check if wallet is installed and listen for account changes
-  useEffect(() => {
-    if (window.ethereum) {
-      toast({ description: "Ethereum wallet found" });
-
-      // Listen for account changes (in case the user changes account)
-      window.ethereum.on("accountsChanged", (accounts: string[]) => {
-        if (accounts.length > 0) {
-          setAccount(accounts[0]);
-        } else {
-          // Handle account disconnection
-          setAccount(null);
-        }
-      });
-    } else {
-      toast({ description: "Ethereum wallet not found" });
-    }
-  }, [toast]);
-
-  // Function to connect wallet
-  const connectWallet = async () => {
-    if (window.ethereum) {
-      try {
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        setAccount(accounts[0]);
-        toast({ description: "Wallet connected successfully" });
-      } catch (error: any) {
-        if (error.code === 4001) {
-          // Handle user rejection
-          setError("User rejected the request");
-        } else {
-          setError(error.message);
-        }
-      }
-    } else {
-      setError("Please install MetaMask");
-    }
+  // Handle input field changes for address input
+  const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setAddressInput(event.target.value);
   };
 
-  // Function to disconnect wallet
-  const disconnectWallet = () => {
-    setAccount(null);
-    toast({ description: "Wallet disconnected" });
+  // Handle check balance click event
+  const handleCheckBalance = () => {
+    if (!addressInput) {
+      console.log("No address input provided.");
+      return;
+    }
+
+    console.log(`Checking balance for address: ${addressInput}`);
+    setCheckedAddress(addressInput);
+    fetchBalance(addressInput);
   };
 
   return (
@@ -71,6 +42,7 @@ const WalletConnect = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Show wallet connection button or disconnect option based on account connection status */}
           {!account ? (
             <Button
               className="w-full bg-[#1E1E1E99] rounded-xl"
@@ -87,6 +59,14 @@ const WalletConnect = () => {
                   {account}
                 </p>
               </div>
+
+              <div className="p-4 bg-gray-200 rounded-lg">
+                <p className="text-sm font-medium text-gray-500">Balance</p>
+                <p className="text-[10px] sm:text-sm font-semibold text-gray-900 break-all">
+                  {balance ? `${balance} ETH` : "N/A"}
+                </p>
+              </div>
+
               <Button
                 onClick={disconnectWallet}
                 className="w-full bg-red-800 text-white hover:bg-red-800">
@@ -94,6 +74,35 @@ const WalletConnect = () => {
               </Button>
             </div>
           )}
+
+          {/* Input for address and button to check balance */}
+          <div className="mt-4">
+            <input
+              type="text"
+              className="w-full p-2 border rounded-md"
+              placeholder="Enter address"
+              value={addressInput}
+              onChange={handleAddressChange}
+            />
+            <Button
+              className="w-full mt-2 bg-blue-600 text-white"
+              onClick={handleCheckBalance}>
+              Check Balance
+            </Button>
+          </div>
+
+          {/* Display the inputted Ethereum address */}
+          {checkedAddress && (
+            <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+              <p className="text-sm font-medium text-gray-500">
+                Checked Address
+              </p>
+              <p className="text-sm font-semibold text-gray-900 break-all">
+                {checkedAddress}
+              </p>
+            </div>
+          )}
+
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </CardContent>
       </Card>

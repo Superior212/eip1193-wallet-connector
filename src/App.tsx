@@ -1,11 +1,11 @@
 import { Toaster } from "./components/ui/toaster";
-import WalletConnect from "./conponents/WalletConnect";
+import WalletConnectV2 from "./conponents/WalletConnectV2";
 
 function App() {
   return (
-    <div className="bg-[#092324]">
+    <div className="h-screen bg-[#092324]">
       <Toaster />
-      <WalletConnect />
+      <WalletConnectV2 />
     </div>
   );
 }
