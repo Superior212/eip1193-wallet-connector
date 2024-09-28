@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+
+// Declare global ethereum object for TypeScript
 declare global {
   interface Window {
     ethereum: any;
@@ -7,43 +9,50 @@ declare global {
 }
 
 export const useWallet = () => {
+  // State variables to store wallet information
   const [account, setAccount] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [network, setNetwork] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle account change and fetch network
+  // useEffect hook to handle wallet events and initial setup
   useEffect(() => {
     if (window.ethereum) {
+      // Event: accountsChanged
+      // This event is fired when the user switches accounts in their wallet
       window.ethereum.on("accountsChanged", (accounts: string[]) => {
         if (accounts.length > 0) {
           setAccount(accounts[0]);
           fetchBalance(accounts[0]);
         } else {
+          // If no accounts are available, reset the state
           setAccount(null);
           setBalance(null);
         }
       });
 
-      fetchNetwork(); // Fetch network when the component mounts
+      // Fetch the initial network when the component mounts
+      fetchNetwork();
 
-      // Listen for network changes
+      // Event: chainChanged
+      // This event is fired when the user switches networks in their wallet
       window.ethereum.on("chainChanged", (chainId: string) => {
         setNetwork(getNetworkName(chainId));
         if (account) {
-          fetchBalance(account); // Refetch balance when network changes
+          // Refetch balance when network changes
+          fetchBalance(account);
         }
       });
 
+      // Cleanup function to remove event listeners
       return () => {
-        // Cleanup event listeners
         window.ethereum.removeListener("accountsChanged", () => {});
         window.ethereum.removeListener("chainChanged", () => {});
       };
     }
-  }, [account]); // Depend on `account` to refetch balance when network changes
+  }, [account]); // Dependency on 'account' to refetch balance when network changes
 
-  // Function to fetch network name
+  // Function to fetch the current network name
   const fetchNetwork = async () => {
     if (window.ethereum) {
       try {
@@ -57,13 +66,13 @@ export const useWallet = () => {
     }
   };
 
-  // Helper function to map chain ID to network names
+  // Helper function to map chain ID to human-readable network names
   const getNetworkName = (chainId: string) => {
     switch (chainId) {
       case "0x1":
         return "Mainnet";
-      case "0x5":
-        return "Goerli";
+      case "0x2105":
+        return "Base";
       case "0xaa36a7":
         return "Sepolia";
       default:
@@ -71,16 +80,17 @@ export const useWallet = () => {
     }
   };
 
-  // Function to connect wallet
+  // Function to connect the wallet
   const connectWallet = async () => {
     if (window.ethereum) {
       try {
+        // Request account access
         const accounts = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
         setAccount(accounts[0]);
         fetchBalance(accounts[0]);
-        fetchNetwork(); 
+        fetchNetwork();
       } catch (err: any) {
         setError(err.message || "Failed to connect wallet");
       }
@@ -89,14 +99,14 @@ export const useWallet = () => {
     }
   };
 
-  // Function to disconnect wallet
+  // Function to disconnect the wallet (reset state)
   const disconnectWallet = () => {
     setAccount(null);
     setBalance(null);
-    setNetwork(null); 
+    setNetwork(null);
   };
 
-  // Function to fetch balance
+  // Function to fetch the balance of a given address
   const fetchBalance = async (address: string) => {
     if (window.ethereum) {
       try {
@@ -111,6 +121,7 @@ export const useWallet = () => {
     }
   };
 
+  // Return the state and functions for use in components
   return {
     account,
     balance,
