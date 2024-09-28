@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,21 +16,29 @@ import { useToast } from "@/hooks/use-toast";
 import { ethers } from "ethers";
 
 const WalletConnectV2 = () => {
+  // Custom hook to manage wallet state
   const { account, balance, network, error, connectWallet, disconnectWallet } =
     useWallet();
 
+  // State for address input and balance checking
   const [addressInput, setAddressInput] = useState<string>("");
   const [checkedAddress, setCheckedAddress] = useState<string | null>(null);
   const [inputAddressBalance, setInputAddressBalance] = useState<string | null>(
     null
   );
+
+  // Custom hook for displaying toast notifications
   const { toast } = useToast();
+
+  // Loading state for balance checking
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handler for address input changes
   const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAddressInput(event.target.value);
   };
 
+  // Function to check balance of input address
   const handleCheckBalance = async () => {
     if (!addressInput) {
       toast({
@@ -64,6 +72,7 @@ const WalletConnectV2 = () => {
     }
   };
 
+  // Function to copy connected wallet address to clipboard
   const handleCopyAddress = () => {
     if (account) {
       navigator.clipboard.writeText(account);
@@ -85,6 +94,7 @@ const WalletConnectV2 = () => {
           </CardHeader>
           <CardContent>
             {account ? (
+              // Display connected wallet information
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -132,6 +142,7 @@ const WalletConnectV2 = () => {
                 </Button>
               </motion.div>
             ) : (
+              // Display connect wallet button if not connected
               <Button onClick={connectWallet} className="w-full">
                 <WalletIcon className="mr-2 h-4 w-4" /> Connect Wallet
               </Button>
@@ -162,6 +173,7 @@ const WalletConnectV2 = () => {
                 Check Balance
               </Button>
 
+              {/* Display checked address balance */}
               {checkedAddress && (
                 <motion.div
                   className="text-center mt-4"
@@ -182,6 +194,7 @@ const WalletConnectV2 = () => {
         </Card>
       </div>
 
+      {/* Display error message if any */}
       {error && (
         <Alert className="mt-4">
           <AlertCircle className="h-4 w-4" />
