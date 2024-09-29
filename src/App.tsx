@@ -1,5 +1,5 @@
 import { Toaster } from "./components/ui/toaster";
-import WalletConnectV2 from "./conponents/WalletConnectV2";
+import WalletConnectV2 from "./components/WalletConnectV2";
 
 function App() {
   return (
